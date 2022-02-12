@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb-roles-db
+    volumes:
+      - mongo-volume-db:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root1234
+    ports:
+      - "27017:27017"
+volumes:
+  mongo-volume-db:
