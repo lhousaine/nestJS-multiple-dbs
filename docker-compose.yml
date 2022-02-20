@@ -1,19 +1,61 @@
 version: '3.7'
 
 services:
-  mysql:
-    image: mysql
-    container_name: mysqlServer
+  mysqlDB:
+    image: mysql:5.7
+    container_name: ${MYSQL_HOST}
+    networks:
+      - multiple-dbs-network
     volumes:
       - mysql-server:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: user
-      MYSQL_PASSWORD: user1234
-      MYSQL_DATABASE: users_db
+      MYSQL_TCP_PORT: ${MYSQL_TCP_PORT}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     ports:
-      - '3306:3306'
+      - "${MYSQL_TCP_PORT}:${MYSQL_TCP_PORT}"
+    env_file: .env
+    restart: always
+  
+  mongodb-db:
+    image: mongo
+    container_name: ${MONGO_HOST}
+    volumes:
+      - mongo-db:/var/lib/mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+    env_file: 
+      - .env
+    networks:
+      - multiple-dbs-network
+
+  multidbsapi:
+    container_name: ${BACKEND_API_HOST}
+    build: 
+      context: .
+      target: development
+      dockerfile: ./dockerfile
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - ${MAIN_APP_PORT}:${MAIN_APP_PORT}
+      - 9229:9229
+    command: npm run start:dev
+    env_file: 
+      - .env
+    networks:
+      - multiple-dbs-network
+    depends_on:
+      - mysqlDB
+      - mongodb-db
 
 volumes:
   mysql-server:
+  mongo-db:
+networks:
+  multiple-dbs-network:

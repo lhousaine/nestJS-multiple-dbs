@@ -5,39 +5,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostModule } from './modules/post/post.module';
 import { UserModule } from './modules/user/user.module';
 import { RoleModule } from './modules/role/role.module';
-import { Role } from './modules/role/role.entity';
+import { Role } from './modules/role/role.schema';
 import { ConfigModule } from '@nestjs/config';
-
-const defaultOptions = {
-  type: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  username: 'root',
-  password: 'root',
-  synchronize: true,
-};
+import connectConfig from './ormconfig';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      ...defaultOptions,
-      database: 'users_db',
-      entities: [User],
-    } as any),
+      ...connectConfig[0],
+      entities: [User, Post]
+    }),
     TypeOrmModule.forRoot({
-      ...defaultOptions,
-      database: 'posts_db',
-      name: 'posts',
-      entities: [Post],
-    } as any),
-    TypeOrmModule.forRoot({
-      type: 'mongodb',
-      url: process.env.MONGO_URL,
-      synchronize: true,
-      useUnifiedTopology: true,
+      ...connectConfig[1],
       entities: [Role],
-      name: 'roles',
     } as any),
     PostModule,
     UserModule,
